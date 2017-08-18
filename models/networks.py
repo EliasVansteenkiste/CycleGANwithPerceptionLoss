@@ -1,8 +1,13 @@
 import torch
 import torch.nn as nn
 from torch.nn import init
-import functools
+import torchvision
+import torch.optim as optim
+import torch.nn.functional as F
 from torch.autograd import Variable
+
+import math
+import functools
 import numpy as np
 ###############################################################################
 # Functions
@@ -36,7 +41,9 @@ def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropo
     if use_gpu:
         assert(torch.cuda.is_available())
 
-    if which_model_netG == 'resnet_9blocks':
+    if which_model_netG == 'resnet_12blocks':
+        netG = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=12, gpu_ids=gpu_ids)
+    elif which_model_netG == 'resnet_9blocks':
         netG = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, gpu_ids=gpu_ids)
     elif which_model_netG == 'resnet_6blocks':
         netG = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=6, gpu_ids=gpu_ids)
@@ -71,6 +78,24 @@ def define_D(input_nc, ndf, which_model_netD,
         netD.cuda(device_id=gpu_ids[0])
     netD.apply(weights_init)
     return netD
+
+
+def define_feature_network(which_model_netFeat, gpu_ids=[]):
+    netFeat = None
+    use_gpu = len(gpu_ids) > 0
+
+    if use_gpu:
+        assert(torch.cuda.is_available())
+
+    if which_model_netFeat == 'resnet34':
+        netFeat = FeatureResNet34(gpu_ids=gpu_ids)
+    else:
+        raise NotImplementedError('Feature model name [%s] is not recognized' %
+                                  which_model_netFeat)
+    if use_gpu:
+        netFeat.cuda(device_id=gpu_ids[0])
+
+    return netFeat
 
 
 def print_network(net):
@@ -348,3 +373,94 @@ class NLayerDiscriminator(nn.Module):
             return nn.parallel.data_parallel(self.model, input, self.gpu_ids)
         else:
             return self.model(input)
+
+class ResNet34(nn.Module):
+
+    def __init__(self, block, layers, num_classes=1000):
+        self.inplanes = 64
+        super(ResNet34, self).__init__()
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
+                               bias=False)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.relu = nn.ReLU(inplace=True)
+        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        self.layer1 = self._make_layer(block, 64, layers[0])
+        self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
+        self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
+        self.avgpool = nn.AvgPool2d(7)
+        self.fc_drop = nn.Dropout(p=0.75)
+        self.fc = nn.Linear(512 * block.expansion, num_classes)
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
+
+    def _make_layer(self, block, planes, blocks, stride=1):
+        downsample = None
+        if stride != 1 or self.inplanes != planes * block.expansion:
+            downsample = nn.Sequential(
+                nn.Conv2d(self.inplanes, planes * block.expansion,
+                          kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(planes * block.expansion),
+            )
+
+        layers = []
+        layers.append(block(self.inplanes, planes, stride, downsample))
+        self.inplanes = planes * block.expansion
+        for i in range(1, blocks):
+            layers.append(block(self.inplanes, planes))
+
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        x = self.fc_drop(x4)
+        x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
+
+        return x
+
+    def get_features(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        return x
+
+
+
+class FeatureResNet34(nn.Module):
+    def __init__(self, gpu_ids, **kwargs):
+        super(FeatureResNet34, self).__init__()
+        self.gpu_ids = gpu_ids
+        self.resnet = ResNet34(torchvision.models.resnet.BasicBlock, [3, 4, 6, 3], **kwargs)
+        self.resnet.load_state_dict(torch.utils.model_zoo.load_url(torchvision.models.resnet.model_urls['resnet34']))
+        for param in self.resnet.parameters():
+            param.requires_grad = False
+
+
+    def forward(self, input):
+        if len(self.gpu_ids) and isinstance(input.data, torch.cuda.FloatTensor):
+            return nn.parallel.data_parallel(self.resnet.get_features, input, self.gpu_ids)
+        else:
+            return self.resnet.get_features(input)
+

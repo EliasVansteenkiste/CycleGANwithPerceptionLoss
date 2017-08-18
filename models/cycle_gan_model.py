@@ -11,6 +11,9 @@ from . import networks
 import sys
 
 
+def mse_loss(input, target):
+    return torch.sum((input - target)**2) / input.data.nelement()
+
 class CycleGANModel(BaseModel):
     def name(self):
         return 'CycleGANModel'
@@ -32,6 +35,7 @@ class CycleGANModel(BaseModel):
         self.netG_B = networks.define_G(opt.output_nc, opt.input_nc,
                                         opt.ngf, opt.which_model_netG, opt.norm, not opt.no_dropout, self.gpu_ids)
 
+
         if self.isTrain:
             use_sigmoid = opt.no_lsgan
             self.netD_A = networks.define_D(opt.output_nc, opt.ndf,
@@ -40,6 +44,8 @@ class CycleGANModel(BaseModel):
             self.netD_B = networks.define_D(opt.input_nc, opt.ndf,
                                             opt.which_model_netD,
                                             opt.n_layers_D, opt.norm, use_sigmoid, self.gpu_ids)
+            self.netFeat = networks.define_feature_network(opt.which_model_feat, self.gpu_ids)
+
         if not self.isTrain or opt.continue_train:
             which_epoch = opt.which_epoch
             self.load_network(self.netG_A, 'G_A', which_epoch)
@@ -56,6 +62,7 @@ class CycleGANModel(BaseModel):
             self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, tensor=self.Tensor)
             self.criterionCycle = torch.nn.L1Loss()
             self.criterionIdt = torch.nn.L1Loss()
+            self.criterionFeat = mse_loss
             # initialize optimizers
             self.optimizer_G = torch.optim.Adam(itertools.chain(self.netG_A.parameters(), self.netG_B.parameters()),
                                                 lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -120,6 +127,7 @@ class CycleGANModel(BaseModel):
         lambda_idt = self.opt.identity
         lambda_A = self.opt.lambda_A
         lambda_B = self.opt.lambda_B
+        lambda_feat = self.opt.lambda_feat
         # Identity loss
         if lambda_idt > 0:
             # G_A should be identity if real_B is fed.
@@ -142,13 +150,40 @@ class CycleGANModel(BaseModel):
         pred_fake = self.netD_B.forward(self.fake_A)
         self.loss_G_B = self.criterionGAN(pred_fake, True)
         # Forward cycle loss
-        self.rec_A = self.netG_B.forward(self.fake_B)
+        self.rec_A = self.netG_B.forward(self.fake_B) 
+        
+        # gamma = 1.
+        # l_rec_A =  .2126 * self.rec_A[:,0]**gamma + .7152 * self.rec_A[:,1]**gamma + .0722 * self.rec_A[:,2]**gamma
+        # l_real_A =  .2126 * self.real_A[:,0]**gamma + .7152 * self.real_A[:,1]**gamma + .0722 * self.real_A[:,2]**gamma
+        
         self.loss_cycle_A = self.criterionCycle(self.rec_A, self.real_A) * lambda_A
+        
         # Backward cycle loss
         self.rec_B = self.netG_A.forward(self.fake_A)
+
+        # gamma = 1.
+        # l_rec_B =  .2126 * self.rec_B[:,0]**gamma + .7152 * self.rec_B[:,1]**gamma + .0722 * self.rec_B[:,2]**gamma
+        # l_real_B =  .2126 * self.real_B[:,0]**gamma + .7152 * self.real_B[:,1]**gamma + .0722 * self.real_B[:,2]**gamma
+        
         self.loss_cycle_B = self.criterionCycle(self.rec_B, self.real_B) * lambda_B
+
+
+        # print ('self.netFeat(self.real_A).parameters()', self.netFeat(self.real_A).parameters())
+        # print ('self.netFeat(self.fake_B).parameters()', self.netFeat(self.fake_B).parameters())
+        # print ('self.criterionFeat(self.netFeat(self.real_A), self.netFeat(self.fake_B)).parameters()', self.criterionFeat(self.netFeat(self.real_A), self.netFeat(self.fake_B)).parameters())
+
+
+        self.feat_loss_AB = self.criterionFeat(self.netFeat(self.real_A), self.netFeat(self.fake_B))    
+        self.feat_loss_BA = self.criterionFeat(self.netFeat(self.real_B), self.netFeat(self.fake_A))
+
+        self.feat_loss_ArB = self.criterionFeat(self.netFeat(self.fake_A), self.netFeat(self.rec_B))
+        self.feat_loss_BrA = self.criterionFeat(self.netFeat(self.fake_B), self.netFeat(self.rec_A))
+
+        self.feat_loss = (self.feat_loss_AB + self.feat_loss_BA + self.feat_loss_ArB + self.feat_loss_BrA) * lambda_feat
+
+
         # combined loss
-        self.loss_G = self.loss_G_A + self.loss_G_B + self.loss_cycle_A + self.loss_cycle_B + self.loss_idt_A + self.loss_idt_B
+        self.loss_G = self.loss_G_A + self.loss_G_B + self.loss_cycle_A + self.loss_cycle_B + self.loss_idt_A + self.loss_idt_B + self.feat_loss
         self.loss_G.backward()
 
     def optimize_parameters(self):
@@ -217,3 +252,4 @@ class CycleGANModel(BaseModel):
 
         print('update learning rate: %f -> %f' % (self.old_lr, lr))
         self.old_lr = lr
+
