@@ -1,5 +1,5 @@
-<img src='imgs/tile0_tr4.jpg' align="right" width=384>
-<img src='imgs/tile1_tr4.jpg' align="right" width=384>
+<img src='imgs/tile0_tr4.jpg'>
+<img src='imgs/tile1_tr4.jpg'>
 
 Clarifying Rainy traffic photos. You can check the presentation of the first results [here](https://docs.google.com/presentation/d/1rKt87ZeBKS8gvSJMc8Zb_zrjSqcQEckGH3Msi_sgxX4/edit?usp=sharing)
 
