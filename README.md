@@ -3,26 +3,6 @@
 
 Clarifying Rainy traffic photos. You can check the presentation of the first results [here](https://docs.google.com/presentation/d/1rKt87ZeBKS8gvSJMc8Zb_zrjSqcQEckGH3Msi_sgxX4/edit?usp=sharing)
 
-# CycleGAN and pix2pix in PyTorch
-
-This is our ongoing PyTorch implementation for both unpaired and paired image-to-image translation.
-
-The code was written by [Jun-Yan Zhu](https://github.com/junyanz) and [Taesung Park](https://github.com/taesung89).
-
-Check out the original [CycleGAN Torch](https://github.com/junyanz/CycleGAN) and [pix2pix Torch](https://github.com/phillipi/pix2pix) code if you would like to reproduce the exact same results as in the papers.
-
-
-#### CycleGAN: [[Project]](https://junyanz.github.io/CycleGAN/) [[Paper]](https://arxiv.org/pdf/1703.10593.pdf) [[Torch]](https://github.com/junyanz/CycleGAN)
-<img src="https://junyanz.github.io/CycleGAN/images/teaser_high_res.jpg" width="900"/>
-
-#### Pix2pix:  [[Project]](https://phillipi.github.io/pix2pix/) [[Paper]](https://arxiv.org/pdf/1611.07004v1.pdf) [[Torch]](https://github.com/phillipi/pix2pix)
-
-<img src="https://phillipi.github.io/pix2pix/images/teaser_v3.png" width="900px"/>
-
-#### [[EdgesCats Demo]](https://affinelayer.com/pixsrv/)  [[pix2pix-tensorflow]](https://github.com/affinelayer/pix2pix-tensorflow)   
-Written by [Christopher Hesse](https://twitter.com/christophrhesse)  
-
-<img src='imgs/edges2cats.jpg' width="600px"/>
 
 
 ## Prerequisites
