@@ -1,38 +1,7 @@
-<img src='imgs/horse2zebra.gif' align="right" width=384>
+<img src='imgs/tile0_tr4.gif' align="right" width=384>
+<img src='imgs/tile1_tr4.gif' align="right" width=384>
 
-<br><br><br>
-
-# CycleGAN and pix2pix in PyTorch
-
-This is our ongoing PyTorch implementation for both unpaired and paired image-to-image translation.
-
-The code was written by [Jun-Yan Zhu](https://github.com/junyanz) and [Taesung Park](https://github.com/taesung89).
-
-Check out the original [CycleGAN Torch](https://github.com/junyanz/CycleGAN) and [pix2pix Torch](https://github.com/phillipi/pix2pix) code if you would like to reproduce the exact same results as in the papers.
-
-
-#### CycleGAN: [[Project]](https://junyanz.github.io/CycleGAN/) [[Paper]](https://arxiv.org/pdf/1703.10593.pdf) [[Torch]](https://github.com/junyanz/CycleGAN)
-<img src="https://junyanz.github.io/CycleGAN/images/teaser_high_res.jpg" width="900"/>
-
-#### Pix2pix:  [[Project]](https://phillipi.github.io/pix2pix/) [[Paper]](https://arxiv.org/pdf/1611.07004v1.pdf) [[Torch]](https://github.com/phillipi/pix2pix)
-
-<img src="https://phillipi.github.io/pix2pix/images/teaser_v3.png" width="900px"/>
-
-#### [[EdgesCats Demo]](https://affinelayer.com/pixsrv/)  [[pix2pix-tensorflow]](https://github.com/affinelayer/pix2pix-tensorflow)   
-Written by [Christopher Hesse](https://twitter.com/christophrhesse)  
-
-<img src='imgs/edges2cats.jpg' width="600px"/>
-
-If you use this code for your research, please cite:
-
-Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks  
-[Jun-Yan Zhu](https://people.eecs.berkeley.edu/~junyanz/)\*,  [Taesung Park](https://taesung.me/)\*, [Phillip Isola](https://people.eecs.berkeley.edu/~isola/), [Alexei A. Efros](https://people.eecs.berkeley.edu/~efros/)  
-In arxiv, 2017. (* equal contributions)  
-
-
-Image-to-Image Translation with Conditional Adversarial Networks  
-[Phillip Isola](https://people.eecs.berkeley.edu/~isola/), [Jun-Yan Zhu](https://people.eecs.berkeley.edu/~junyanz/), [Tinghui Zhou](https://people.eecs.berkeley.edu/~tinghuiz/), [Alexei A. Efros](https://people.eecs.berkeley.edu/~efros/)   
-In CVPR 2017.
+Clarifying Rainy traffic photos. You can check the presentation of the first results [here](https://docs.google.com/presentation/d/1rKt87ZeBKS8gvSJMc8Zb_zrjSqcQEckGH3Msi_sgxX4/edit?usp=sharing)
 
 
 
@@ -57,8 +26,8 @@ pip install dominate
 ```
 - Clone this repo:
 ```bash
-git clone https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix
-cd pytorch-CycleGAN-and-pix2pix
+git clone https://github.com/EliasVansteenkiste/CycleGANwithPerceptionLoss
+cd CycleGANwithPerceptionLoss
 ```
 
 ### CycleGAN train/test
@@ -155,32 +124,6 @@ python datasets/combine_A_and_B.py --fold_A /path/to/data/A --fold_B /path/to/da
 
 This will combine each pair of images (A,B) into a single image file, ready for training.
 
-## Citation
-If you use this code for your research, please cite our papers.
-```
-@article{CycleGAN2017,
-  title={Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks},
-  author={Zhu, Jun-Yan and Park, Taesung and Isola, Phillip and Efros, Alexei A},
-  journal={arXiv preprint arXiv:1703.10593},
-  year={2017}
-}
-
-@article{pix2pix2016,
-  title={Image-to-Image Translation with Conditional Adversarial Networks},
-  author={Isola, Phillip and Zhu, Jun-Yan and Zhou, Tinghui and Efros, Alexei A},
-  journal={arxiv},
-  year={2016}
-}
-```
-
-## Related Projects
-[CycleGAN](https://github.com/junyanz/CycleGAN): Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks  
-[pix2pix](https://github.com/phillipi/pix2pix): Image-to-image translation with conditional adversarial nets  
-[iGAN](https://github.com/junyanz/iGAN): Interactive Image Generation via Generative Adversarial Networks
-
-## Cat Paper Collection
-If you love cats, and love reading cool graphics, vision, and learning papers, please check out the Cat Paper Collection:  
-[[Github]](https://github.com/junyanz/CatPapers) [[Webpage]](http://people.eecs.berkeley.edu/~junyanz/cat/cat_papers.html)
 
 ## Acknowledgments
-Code is inspired by [pytorch-DCGAN](https://github.com/pytorch/examples/tree/master/dcgan).
+Code is inspired by [pytorch-CycleGAN-and-pix2pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix).
