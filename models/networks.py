@@ -89,6 +89,8 @@ def define_feature_network(which_model_netFeat, gpu_ids=[]):
 
     if which_model_netFeat == 'resnet34':
         netFeat = FeatureResNet34(gpu_ids=gpu_ids)
+    elif which_model_netFeat == 'resnet101':
+        netFeat = FeatureResNet101(gpu_ids=gpu_ids)
     else:
         raise NotImplementedError('Feature model name [%s] is not recognized' %
                                   which_model_netFeat)
@@ -104,6 +106,7 @@ def print_network(net):
         num_params += param.numel()
     print(net)
     print('Total number of parameters: %d' % num_params)
+
 
 
 ##############################################################################
@@ -427,24 +430,24 @@ class ResNet34(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
-        x = self.fc_drop(x4)
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
+        # x = self.fc_drop(x4)
+        # x = self.avgpool(x)
+        # x = x.view(x.size(0), -1)
+        # x = self.fc(x)
 
         return x
 
-    def get_features(self, x):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
+    # def get_features(self, x):
+    #     x = self.conv1(x)
+    #     x = self.bn1(x)
+    #     x = self.relu(x)
+    #     x = self.maxpool(x)
 
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
-        return x
+    #     x = self.layer1(x)
+    #     x = self.layer2(x)
+    #     x = self.layer3(x)
+    #     x = self.layer4(x)
+    #     return x
 
 
 
@@ -460,7 +463,7 @@ class FeatureResNet34(nn.Module):
 
     def forward(self, input):
         if len(self.gpu_ids) and isinstance(input.data, torch.cuda.FloatTensor):
-            return nn.parallel.data_parallel(self.resnet.get_features, input, self.gpu_ids)
+            return nn.parallel.data_parallel(self.resnet, input, self.gpu_ids)
         else:
-            return self.resnet.get_features(input)
+            return self.resnet(input)
 
