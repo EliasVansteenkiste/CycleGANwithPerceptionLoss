@@ -1,5 +1,5 @@
-<img src='imgs/tile0_tr4.gif' align="right" width=384>
-<img src='imgs/tile1_tr4.gif' align="right" width=384>
+<img src='imgs/tile0_tr4.jpg'>
+<img src='imgs/tile1_tr4.jpg'>
 
 Clarifying Rainy traffic photos. You can check the presentation of the first results [here](https://docs.google.com/presentation/d/1rKt87ZeBKS8gvSJMc8Zb_zrjSqcQEckGH3Msi_sgxX4/edit?usp=sharing)
 
@@ -47,6 +47,22 @@ python train.py --dataroot ./datasets/maps --name maps_cyclegan --model cycle_ga
 python test.py --dataroot ./datasets/maps --name maps_cyclegan --model cycle_gan --phase test --no_dropout
 ```
 The test results will be saved to a html file here: `./results/maps_cyclegan/latest_test/index.html`.
+
+### CycleGAN with perception loss
+First download the dataset and rename the two sets. For example rainy -> A, suny -> B. I have four folders in ./datasets/rainy_sunny/
+testA,  testB, trainA and trainB.
+
+- Training with the following parameters led to the best results;
+```bash
+python3 train.py --dataroot ./datasets/rainy_sunny --name rainy_sunny_cyclegan --model cycle_gan --no_dropout --batchSize 3 --display_id 0 --niter 200 --niter_decay 200 --lambda_A 10.0 --lambda_B 10.0 --lambda_feat 1.0
+```
+
+- Testing the model
+```bash
+python3 test.py --dataroot ./datasets/rainy_sunny --name rainy_sunny_cyclegan --model cycle_gan --phase test --no_dropout --display_id 0 --how_many 600
+```
+
+Tiling the images is done with the img_concat.py script
 
 ### pix2pix train/test
 - Download a pix2pix dataset (e.g.facades):
