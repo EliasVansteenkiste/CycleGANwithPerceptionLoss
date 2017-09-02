@@ -127,7 +127,16 @@ class CycleGANModel(BaseModel):
         lambda_idt = self.opt.identity
         lambda_A = self.opt.lambda_A
         lambda_B = self.opt.lambda_B
-        lambda_feat = self.opt.lambda_feat
+
+        lambda_feat_AfB = self.opt.lambda_feat_AfB    
+        lambda_feat_BfA = self.opt.lambda_feat_BfA
+
+        lambda_feat_fArecB = self.opt.lambda_feat_fArecB
+        lambda_feat_fBrecA = self.opt.lambda_feat_fBrecA
+
+        lambda_feat_ArecA = self.opt.lambda_feat_ArecA
+        lambda_feat_BrecB = self.opt.lambda_feat_BrecB
+
         # Identity loss
         if lambda_idt > 0:
             # G_A should be identity if real_B is fed.
@@ -173,14 +182,16 @@ class CycleGANModel(BaseModel):
         # print ('self.criterionFeat(self.netFeat(self.real_A), self.netFeat(self.fake_B)).parameters()', self.criterionFeat(self.netFeat(self.real_A), self.netFeat(self.fake_B)).parameters())
 
 
-        self.feat_loss_AB = self.criterionFeat(self.netFeat(self.real_A), self.netFeat(self.fake_B))    
-        self.feat_loss_BA = self.criterionFeat(self.netFeat(self.real_B), self.netFeat(self.fake_A))
+        self.feat_loss_AfB = self.criterionFeat(self.netFeat(self.real_A), self.netFeat(self.fake_B)) * lambda_feat_AfB    
+        self.feat_loss_BfA = self.criterionFeat(self.netFeat(self.real_B), self.netFeat(self.fake_A)) * lambda_feat_BfA
 
-        self.feat_loss_ArB = self.criterionFeat(self.netFeat(self.fake_A), self.netFeat(self.rec_B))
-        self.feat_loss_BrA = self.criterionFeat(self.netFeat(self.fake_B), self.netFeat(self.rec_A))
+        self.feat_loss_fArecB = self.criterionFeat(self.netFeat(self.fake_A), self.netFeat(self.rec_B)) * lambda_feat_fArecB
+        self.feat_loss_fBrecA = self.criterionFeat(self.netFeat(self.fake_B), self.netFeat(self.rec_A)) * lambda_feat_fBrecA
 
-        self.feat_loss = (self.feat_loss_AB + self.feat_loss_BA + self.feat_loss_ArB + self.feat_loss_BrA) * lambda_feat
+        self.feat_loss_ArecA = self.criterionFeat(self.netFeat(self.real_A), self.netFeat(self.rec_A)) * lambda_feat_ArecA 
+        self.feat_loss_BrecB = self.criterionFeat(self.netFeat(self.real_B), self.netFeat(self.rec_B)) * lambda_feat_BrecB 
 
+        self.feat_loss = self.feat_loss_AfB + self.feat_loss_BfA + self.feat_loss_fArecB + self.feat_loss_fBrecA + self.feat_loss_ArecA + self.feat_loss_BrecB
 
         # combined loss
         self.loss_G = self.loss_G_A + self.loss_G_B + self.loss_cycle_A + self.loss_cycle_B + self.loss_idt_A + self.loss_idt_B + self.feat_loss
